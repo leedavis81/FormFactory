@@ -1,0 +1,7 @@
+* Remove Zend_Controller_Front dependency in Form.php
+
+* create a list of dependencies, test for them before doing form construction
+
+* allow a section definition per entity relation
+
+* Write unit tests for complete code coverage
