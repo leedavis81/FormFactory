@@ -47,8 +47,14 @@ class Form
             throw new Exception('Unable to retrieve config file from path ' . $fullPath);
         }
 
-        $this->config = Helper::start($fullPath, $this->getSection())->getObject();
-
+        try {
+            $this->config = Helper::start($fullPath, $this->getSection())->getObject();    
+        } catch (\Exception $e)
+        {
+            // create an empty config object
+            $this->config = new \Zend_Config(array());   
+        }
+        
         // Load up configuration options into this object
         $this->loadCustomConfigurations();
     }
@@ -59,27 +65,30 @@ class Form
     protected function loadCustomConfigurations()
     {
         $config = $this->getConfig()->toArray();
-        foreach ($config['config'] as $configKey => $configValue)
+        if (isset($config['config']))
         {
-            if (is_string($configValue))
+            foreach ($config['config'] as $configKey => $configValue)
             {
-                // Load up form level configurations to the object
-                switch($configKey)
+                if (is_string($configValue))
                 {
-                    // process form level definitions
-                    case 'disabled':
-                        $disabledElements = array_map('trim', explode(',', $configValue));
-                        foreach ($disabledElements as $disabledElement)
-                        {
-                            $this->setElementConfig($disabledElement, array('disabled' => true));
-                        }
-                        break;
+                    // Load up form level configurations to the object
+                    switch($configKey)
+                    {
+                        // process form level definitions
+                        case 'disabled':
+                            $disabledElements = array_map('trim', explode(',', $configValue));
+                            foreach ($disabledElements as $disabledElement)
+                            {
+                                $this->setElementConfig($disabledElement, array('disabled' => true));
+                            }
+                            break;
+                    }
+                } elseif (is_array($configValue))
+                {
+                    // these are field level configurations and should be populated in the element configuration object
+                    $this->setElementConfig($configKey, $configValue);
                 }
-            } elseif (is_array($configValue))
-            {
-                // these are field level configurations and should be populated in the element configuration object
-                $this->setElementConfig($configKey, $configValue);
-            }
+        }
         }
     }
 

@@ -14,15 +14,24 @@ class Doctrine2 implements AdapterInterface
 	 */
     protected $em;
 
-
+    //@todo: currently returns relations too, maybe this should just be columns?
     public function getColumns($entityName)
     {
         $metaData = $this->getEntityManager()->getClassMetadata($entityName);
-        if (!empty($metaData->fieldNames))
+
+//        if (!empty($metaData->fieldNames))
+//        {
+//            return $metaData->fieldNames;
+//        }
+//        return array();
+
+        $fields = array();
+        foreach ($metaData->reflFields as $name => $reflObj)
         {
-            return $metaData->fieldNames;
+            $fields[$name] = $reflObj->name;
         }
-        return array();
+
+        return $fields;
     }
 
     public function getColumnDefinitions($entityName, $columnName)
@@ -33,6 +42,7 @@ class Doctrine2 implements AdapterInterface
         }
 
         $metaData = $this->getEntityManager()->getClassMetadata($entityName);
+
         if (isset($metaData->fieldMappings[$columnName]))
         {
             return $metaData->fieldMappings[$columnName];

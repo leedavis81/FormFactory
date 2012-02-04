@@ -77,6 +77,9 @@ class Element
                 case 'linkData':
                     $this->setLinkManualData($configValue);
                     break;
+                case 'linkDataPlugin':
+                	$this->setLinkDataPlugin($configValue);
+                	break;
                 case 'elementType':
                     $this->setElementType($configValue);
                     break;
@@ -230,6 +233,8 @@ class Element
                 break;
             // Types shared between Doctrine 1.2 & 2
             case 'boolean':
+                $this->setElementType('checkbox');
+                break;                
             case 'integer':
             case 'float':
             case 'decimal':
@@ -317,6 +322,11 @@ class Element
      */
     public function getElementType()
     {
+        if (!isset($this->elementType))
+        {
+            // If for some reason (no annoations supplied) the element isn't to a type, default to text            
+            $this->setElementType('text');
+        }
         return $this->elementType;
     }
 
@@ -421,6 +431,29 @@ class Element
             $this->setLinkData($names[$x], $values[$x]);
         }
     }
+    
+    /**
+     * 
+     * Set link data plugin
+     * @param \FormFactory\Plugin\LinkData $className
+     */
+    protected function setLinkDataPlugin($className)
+    {
+        $plugin = new $className();
+        if (!$plugin instanceof \FormFactory\Plugin\LinkData)
+        {
+            throw new Exception('Link data plugin must be extended from \FormFactory\Plugin\LinkData');
+        }
+        
+        // Run any initialisations required
+        $plugin->init();
+        $data = $plugin->getOptions();
+        
+        foreach ($data as $value => $name)
+        {
+            $this->setLinkData($name, $value);
+        }
+    }
 
     /**
      * Set link data for this element
@@ -441,7 +474,7 @@ class Element
                 break;
         }
         // Set to the same order required when injecting multiOptions into zend_form_element_multi
-        $this->linkData[$name] = $value;
+        $this->linkData[$value] = $name;
     }
 
     public function getLinkData()

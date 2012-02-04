@@ -119,6 +119,9 @@ class Form
         // Pull in the metadata defined for this entity
         $columns = $this->general->getAdapter()->getColumns($this->general->getEntityClassName(($entity)));
 
+        // @todo: Merge any additional columns set via factory config, into model columns
+
+
         // If this entity has already been addded, we need to change the name to keep them unique
         $this->entities[] = array(
         	'entityName' => $entity,
@@ -239,8 +242,8 @@ class Form
                     $zendElement = new $elementClass($element->getColumnName());
                 }
 
-                // No label has been set, provide a default
-                if ($zendElement->getLabel() === null)
+                // No label has been set, provide a default for non hidden elements
+                if ($zendElement->getLabel() === null && $element->getElementType() != 'hidden')
                 {
                     $zendElement->setLabel($element->getLabel());
                 }
@@ -314,6 +317,18 @@ class Form
     protected function setFormName($formName)
     {
         $this->formName = $formName;
+    }
+
+
+    /**
+     * Quick call utility for a multiple entities
+     * @param string $model
+     * @param array $params
+     */
+    public static function build($entity, $section = null)
+    {
+        $self = new self($entity, $section);
+        return $self->getZendForm();
     }
 
 
